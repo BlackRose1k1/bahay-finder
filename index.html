@@ -130,9 +130,9 @@ function init(){
   ok.style.display="block";ok.style.color="var(--mute)";ok.textContent="Sending...";btn.disabled=true;
   try{var r=await fetch(SB_URL+"/rest/v1/leads",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
    body:JSON.stringify({full_name:$("n").value.trim(),email:$("e").value.trim(),mobile:$("p").value.trim()||null,interest:$("i").value,consent:$("c").checked})});
-   if(!r.ok)throw new Error(r.status);
+   if(!r.ok){var t=await r.text();throw new Error(r.status+" "+t.slice(0,150));}
    ok.style.color="var(--acc)";ok.textContent="Thank you. You are on the list.";f.reset();
-  }catch(err){ok.style.color="#c0392b";ok.textContent="Sorry, we could not save your details. Please try again.";}
+  }catch(err){ok.style.color="#c0392b";ok.textContent="Sorry, we could not save your details ("+err.message+").";}
   btn.disabled=false;};
  render();
 }

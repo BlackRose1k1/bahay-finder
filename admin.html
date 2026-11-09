@@ -47,11 +47,11 @@ var $=function(i){return document.getElementById(i)},token=null,data=[];
 function esc(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 $("login").onsubmit=async function(e){e.preventDefault();$("msg").textContent="Logging in...";
  try{var r=await fetch(SB_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:$("em").value.trim(),password:$("pw").value})});
-  var j=await r.json();if(!r.ok||!j.access_token)throw new Error();token=j.access_token;$("pw").value="";await load();
- }catch(x){$("msg").textContent="Login failed. Check your email and password.";}};
+  var j=await r.json();if(!r.ok||!j.access_token)throw new Error(j.msg||j.error_description||j.message||j.error||("Error "+r.status));token=j.access_token;$("pw").value="";await load();
+ }catch(x){$("msg").textContent="Login failed: "+(x.message||"unknown error");}};
 async function load(){
  var r=await fetch(SB_URL+"/rest/v1/leads?select=*&order=created_at.desc",{headers:{"apikey":SB_KEY,"Authorization":"Bearer "+token}});
- if(!r.ok)throw new Error();data=await r.json();
+ if(!r.ok)throw new Error("Logged in, but could not load leads (error "+r.status+")");data=await r.json();
  $("login").style.display="none";$("panel").style.display="block";
  $("count").textContent=data.length+(data.length===1?" lead":" leads");
  $("rows").innerHTML=data.length?data.map(function(l){return "<tr><td>"+esc(new Date(l.created_at).toLocaleString())+"</td><td>"+esc(l.full_name)+"</td><td>"+esc(l.email)+"</td><td>"+esc(l.mobile)+"</td><td>"+esc(l.interest)+"</td></tr>"}).join(""):'<tr><td colspan="5">No sign-ups yet.</td></tr>';
