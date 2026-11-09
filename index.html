@@ -84,7 +84,7 @@ footer{padding:24px 0 40px;color:var(--mute);font-size:13px}
 <div><label for="e">Email</label><input id="e" type="email" required></div>
 <div><label for="p">Mobile number</label><input id="p" type="tel"></div>
 <div><label for="i">Interested in</label><select id="i"><option>House and Lot</option><option>Lot Only</option><option>Condominium</option><option>Any type</option></select></div>
-<label class="chk full"><input type="checkbox" required> I agree to be contacted about properties and to the storage of my details for that purpose.</label>
+<label class="chk full"><input id="c" type="checkbox" required> I agree to be contacted about properties and to the storage of my details for that purpose.</label>
 <div class="full"><button class="btn" type="submit">Subscribe</button><div id="ok" role="status">Thank you. You are on the list.</div></div>
 </form>
 </section>
@@ -109,6 +109,7 @@ var TYPES=["All","House and Lot","Lot Only","Condominium"];
 var ICON={"House and Lot":'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3"><path d="M8 30 32 10l24 20M14 26v28h36V26M26 54V38h12v16"/></svg>',
 "Lot Only":'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 44 24 18l34 8-6 22zM6 44l46 4"/></svg>',
 "Condominium":'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3"><path d="M16 56V8h24v48M40 22h10v34M8 56h48M24 18h8M24 28h8M24 38h8"/></svg>'};
+var SB_URL="https://wimlfjmbcnxgtptlrxfs.supabase.co",SB_KEY="sb_publishable_xRTZVgPs8wQDFkM-lrVMjA_AzdZJ-9N";
 var $=function(i){return document.getElementById(i)};
 var type="All",cur="PHP";
 
@@ -125,7 +126,14 @@ function init(){
  $("f").oninput=render;
  $("cur").onchange=function(){cur=this.value;render();};
  $("reset").onclick=function(){$("f").reset();type="All";document.querySelectorAll(".tab").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.t==="All")});render();};
- $("oform").onsubmit=function(e){e.preventDefault();$("ok").style.display="block";this.reset();};
+ $("oform").onsubmit=async function(e){e.preventDefault();var f=this,ok=$("ok"),btn=f.querySelector("button");
+  ok.style.display="block";ok.style.color="var(--mute)";ok.textContent="Sending...";btn.disabled=true;
+  try{var r=await fetch(SB_URL+"/rest/v1/leads",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
+   body:JSON.stringify({full_name:$("n").value.trim(),email:$("e").value.trim(),mobile:$("p").value.trim()||null,interest:$("i").value,consent:$("c").checked})});
+   if(!r.ok)throw new Error(r.status);
+   ok.style.color="var(--acc)";ok.textContent="Thank you. You are on the list.";f.reset();
+  }catch(err){ok.style.color="#c0392b";ok.textContent="Sorry, we could not save your details. Please try again.";}
+  btn.disabled=false;};
  render();
 }
 
